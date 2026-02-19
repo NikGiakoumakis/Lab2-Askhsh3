@@ -741,7 +741,7 @@ case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
 #line 16 "remcom2.l"
-{ BEGIN(INITIAL); printf("\n"); }
+{ BEGIN(INITIAL); fprintf(yyout, "\n"); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
@@ -762,7 +762,7 @@ case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
 #line 21 "remcom2.l"
-{ printf("\n"); }
+{ fprintf(yyout, "\n"); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
@@ -772,13 +772,13 @@ YY_RULE_SETUP
 case 8:
 YY_RULE_SETUP
 #line 26 "remcom2.l"
-{ECHO;}
+{ fprintf(yyout, "%s", yytext); }
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
 YY_RULE_SETUP
 #line 27 "remcom2.l"
-{ECHO;}		
+{ fprintf(yyout, "%s", yytext); }		
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
@@ -1794,15 +1794,33 @@ void yyfree (void * ptr )
 
 #line 29 "remcom2.l"
 
-
+		
 int main(int argc, char **argv) {
-
-	yyin = fopen("testcode.cpp", "r");
-	if (!yyin) {
-		yyin = stdin;
+if(argc < 2) {
+		printf("Usage: %s file1, file2 ... \n", argv[0]);
+		return 1;
 	}
-	
-	yylex();
+
+	yyout = fopen("no_comments.c", "w");
+	if(!yyout) {
+		printf("Could not open output file: no_comments.c\n");
+		return 1;
+	}
+
+	for(int i = 1; i < argc; i++) {
+		yyin = fopen(argv[i], "r");
+		if (!yyin) {
+			printf("Could not open file: %s\n", argv[i]);
+			continue;
+		}
+		
+		fprintf(yyout, "/* Processing file: %s */\n", argv[i]);
+		yyrestart(yyin);
+		yylex();
+		fclose(yyin);
+			
+	}
+	fclose(yyout);
 	return 0;
 		
 }
